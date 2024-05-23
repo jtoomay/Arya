@@ -1,9 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.2"
 
-Deno.serve(async req => {
+Deno.serve(async (req) => {
   const supabase = createClient(
-    "https://dyiynfghnhxawehqnred.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5aXluZmdobmh4YXdlaHFucmVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTYyNDYwNDgsImV4cCI6MjAzMTgyMjA0OH0.R9A2a4eLwXNKdQpHD0HfxciNZDfinik-cf7fLfp69xI",
+    "https://fxkifzhsbabjspxroqkm.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4a2lmemhzYmFianNweHJvcWttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTY0MzUwODcsImV4cCI6MjAzMjAxMTA4N30.9TsRmSaTB2NVvmc41Une1_w3SLLtr5vyOe0bJckmcBk",
     {
       global: { headers: { Authorization: req.headers.get("Authorization")! } },
     }
@@ -14,12 +14,10 @@ Deno.serve(async req => {
   const channel = supabase.channel("aria")
   let responded = false
 
-  channel
-    .on("broadcast", { event: "*" }, (payload: any) => (responded = payload))
-    .subscribe()
+  channel.on("broadcast", { event: "*" }, (payload: any) => (responded = payload)).subscribe()
 
   const waitForResponse = async () => {
-    return await new Promise(resolve => {
+    return await new Promise((resolve) => {
       let tries = 0
       const interval = setInterval(() => {
         if (responded || tries >= 80) {
@@ -34,10 +32,9 @@ Deno.serve(async req => {
   switch (action) {
     case "create-file":
       if (!code || !path)
-        return new Response(
-          JSON.stringify({ message: "Missing code or path!" }),
-          { headers: { "Content-Type": "application/json" } }
-        )
+        return new Response(JSON.stringify({ message: "Missing code or path!" }), {
+          headers: { "Content-Type": "application/json" },
+        })
       await channel.send({
         event: "create-file",
         type: "broadcast",
@@ -59,10 +56,9 @@ Deno.serve(async req => {
       break
     case "push-file":
       if (!path)
-        return new Response(
-          JSON.stringify({ message: "Missing code, path, or commit message!" }),
-          { headers: { "Content-Type": "application/json" } }
-        )
+        return new Response(JSON.stringify({ message: "Missing code, path, or commit message!" }), {
+          headers: { "Content-Type": "application/json" },
+        })
       await channel.send({
         event: "push-file",
         type: "broadcast",
@@ -130,10 +126,9 @@ Deno.serve(async req => {
       break
     case "run-command":
       if (!path || !command)
-        return new Response(
-          JSON.stringify({ message: "Missing code or path!" }),
-          { headers: { "Content-Type": "application/json" } }
-        )
+        return new Response(JSON.stringify({ message: "Missing code or path!" }), {
+          headers: { "Content-Type": "application/json" },
+        })
       await channel.send({
         event: "run-command",
         type: "broadcast",
@@ -142,16 +137,12 @@ Deno.serve(async req => {
       await waitForResponse()
       break
     default:
-      return new Response(
-        JSON.stringify({ message: "Invalid action specified!" }),
-        { headers: { "Content-Type": "application/json" } }
-      )
+      return new Response(JSON.stringify({ message: "Invalid action specified!" }), {
+        headers: { "Content-Type": "application/json" },
+      })
   }
 
-  return new Response(
-    JSON.stringify(
-      responded ? { ...(responded as {}), success: true } : { success: true }
-    ),
-    { headers: { "Content-Type": "application/json" } }
-  )
+  return new Response(JSON.stringify(responded ? { ...(responded as {}), success: true } : { success: true }), {
+    headers: { "Content-Type": "application/json" },
+  })
 })
